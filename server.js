@@ -19,7 +19,42 @@ const io = socketIo(server, {
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, '.')));
+// Configurazione MIME types per Render.com
+const mime = {
+    '.js': 'application/javascript; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+    '.mp3': 'audio/mpeg',
+    '.wav': 'audio/wav',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.ttf': 'font/ttf',
+    '.html': 'text/html; charset=utf-8'
+};
+
+// Middleware per impostare MIME types corretti
+app.use((req, res, next) => {
+    const ext = path.extname(req.path).toLowerCase();
+    if (mime[ext]) {
+        res.setHeader('Content-Type', mime[ext]);
+    }
+    next();
+});
+
+// Serve static files
+app.use(express.static(path.join(__dirname, '.'), {
+    setHeaders: (res, filepath) => {
+        const ext = path.extname(filepath).toLowerCase();
+        if (mime[ext]) {
+            res.setHeader('Content-Type', mime[ext]);
+        }
+    }
+}));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
