@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wordle Maratona</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="client_translations.js"></script>
+    <script src="translation_manager.js"></script>
+    <style>
+        /* Specific Marathon Styles */
+        .marathon-grid-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .grid-row.marathon-own .box {
+            border-color: #4dabf7;
+            /* Blue border */
+        }
+
+        .grid-row.marathon-opponent .box {
+            border-color: #ff6b6b;
+            /* Red border */
+        }
+
+        /* Scrolled view */
+        #maratona-game-container {
+            display: none;
+            /* Hidden initially */
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            padding-top: 20px;
+        }
+
+        #maratona-setup-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            gap: 20px;
+        }
+
+        .status-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SETUP SCREEN -->
+    <div id="maratona-setup-container">
+        <h1 data-i18n="mode_marathon_title">MARATONA</h1>
+        <p data-i18n="mode_marathon_desc">Sfida di velocità! Indovina la parola comune prima dell'avversario.</p>
+        <h2 id="setup-message" data-i18n="marathon_status_waiting">In attesa...</h2>
+        <button id="back-to-lobby-setup-btn" class="secondary-btn" data-i18n="back_lobby">Torna alla Lobby</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="maratona-game-container">
+        <div class="header-container"
+            style="display: flex; justify-content: space-between; width: 90%; max-width: 500px; align-items: center;">
+            <button id="back-to-lobby-game-btn" class="home-btn"
+                style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">
+                <span class="btn-icon">🏠</span>
+            </button>
+            <div class="status-header">
+                <h3 id="game-status" data-i18n="marathon_find_secret">Trova la parola segreta!</h3>
+            </div>
+            <div style="width: 40px;"></div> <!-- Spacer for centering -->
+        </div>
+
+        <div id="marathon-grid" class="marathon-grid-container">
+            <!-- Rows will be added dynamically -->
+        </div>
+
+        <!-- No virtual keyboard as requested -->
+    </div>
+
+    <!-- MODAL -->
+    <div id="game-modal-overlay" class="game-modal-overlay">
+        <div class="game-modal">
+            <h3 id="modal-title">Info</h3>
+            <p id="modal-message">Message</p>
+            <div class="modal-buttons">
+                <button id="modal-confirm" class="modal-btn modal-btn-primary" data-i18n="btn_ok">OK</button>
+                <button id="modal-cancel" class="modal-btn modal-btn-secondary" data-i18n="btn_cancel">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="maratona.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parole XL - Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+
+    <div id="app">
+        <!-- SCREEN: LOBBY -->
+        <div id="lobby-screen" class="screen active">
+            <h1>PAROLE XL</h1>
+
+            <div class="form-group">
+                <label>Nickname</label>
+                <input type="text" id="nickname" placeholder="Il tuo nome..." maxlength="12">
+            </div>
+
+            <div class="row">
+                <!-- Create Room -->
+                <div
+                    style="flex: 1; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-right: 10px;">
+                    <h2>Crea Stanza</h2>
+
+                    <div class="form-group">
+                        <label>Lunghezza Parole:</label>
+                        <div class="checkbox-group" id="length-options">
+                            <label class="checkbox-label checked">5<input type="checkbox" value="5" checked></label>
+                            <label class="checkbox-label">6<input type="checkbox" value="6"></label>
+                            <label class="checkbox-label">7<input type="checkbox" value="7"></label>
+                            <label class="checkbox-label">8<input type="checkbox" value="8"></label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Modalità di Gioco:</label>
+                        <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 15px;">
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" id="mode-turns" value="turns" checked>
+                                ⏱️ Turni (45s)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" id="mode-realtime" value="realtime">
+                                ⚡ No Turni (Gara)
+                            </label>
+                        </div>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label"><input type="checkbox" id="shuffle-mode"> Shuffle Mode</label>
+                        </div>
+                    </div>
+
+                    <button onclick="createRoom()">Crea e Gioca</button>
+                    <p id="create-error" style="color: red; margin-top: 10px;"></p>
+                </div>
+
+                <!-- Join Room -->
+                <div style="flex: 1; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                    <h2>Entra</h2>
+                    <input type="text" id="room-code-input" placeholder="Codice Stanza"
+                        style="text-transform: uppercase; text-align: center; letter-spacing: 3px;">
+                    <button onclick="joinRoom()" class="secondary">Entra</button>
+                    <p id="join-error" style="color: red; margin-top: 10px;"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: WAITING -->
+        <div id="waiting-screen" class="screen">
+            <h1>Stanza: <span id="display-room-code"></span></h1>
+            <div id="players-list"></div>
+            <p style="margin-top: 20px;">In attesa dell'host...</p>
+            <button id="start-btn" onclick="startGame()" style="display: none;">INIZIA PARTITA</button>
+        </div>
+
+        <!-- SCREEN: GAME -->
+        <div id="game-screen" class="screen">
+            <div id="game-header">
+                <div id="timer">--:--</div>
+                <div>Lunghezza: <span id="current-length">5</span></div>
+                <div id="turn-indicator">In attesa...</div>
+            </div>
+
+            <div id="game-area">
+                <div id="grid-container"></div>
+            </div>
+
+            <div id="keyboard"></div>
+
+            <div id="opponent-status">
+                <h3>Avversari</h3>
+                <div id="opponent-list"></div>
+            </div>
+
+            <!-- Emoji Reaction Panel -->
+            <div id="emoji-panel">
+                <button class="emoji-button" data-emoji="😂" title="Risata">😂</button>
+                <button class="emoji-button" data-emoji="🔥" title="Fuoco">🔥</button>
+                <button class="emoji-button" data-emoji="😱" title="Shock">😱</button>
+                <button class="emoji-button" data-emoji="🎉" title="Festa">🎉</button>
+                <button class="emoji-button" data-emoji="😎" title="Figo">😎</button>
+                <button class="emoji-button" data-emoji="💪" title="Forza">💪</button>
+                <button class="emoji-button" data-emoji="🤔" title="Pensiero">🤔</button>
+                <button class="emoji-button" data-emoji="❤️" title="Amore">❤️</button>
+            </div>
+
+            <!-- Emoji Reactions Display -->
+            <div id="emoji-reactions-display"></div>
+        </div>
+
+        <!-- MODAL: GAME OVER -->
+        <div id="end-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h1 id="modal-title">Partita Finita!</h1>
+                <p id="modal-subtitle">La parola era: <span id="modal-word" class="green-text">-----</span></p>
+
+                <div id="modal-controls">
+                    <button id="btn-new-game" onclick="nextRound()" class="btn-green">NUOVA PARTITA</button>
+                    <button id="btn-lobby" onclick="location.reload()" class="btn-blue">TORNA ALLA LOBBY</button>
+                </div>
+
+                <div id="host-options" style="display:none; margin-top: 15px;">
+                    <select id="next-length-modal"
+                        style="padding: 10px; border-radius: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid #444;">
+                        <option value="5">5 Lettere</option>
+                        <option value="6">6 Lettere</option>
+                        <option value="7">7 Lettere</option>
+                        <option value="8">8 Lettere</option>
+                    </select>
+                </div>
+
+                <p id="modal-waiting-msg" style="display:none; color: #ccc; margin-top: 15px;">In attesa dell'host...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="audio-win" src="../../audio/audio_win.mp3" preload="auto"></audio>
+    <audio id="audio-myturn" src="../../audio/myturn.mp3" preload="auto"></audio>
+    <audio id="audio-tick" src="../../audio/tick.mp3" preload="auto"></audio>
+
+    <script src="client.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Multiplayer Guess The Word (Wordle)</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f0f1e">
+    <link rel="apple-touch-icon" href="immagini/splash.png">
+    <script src="client_translations.js"></script>
+    <script src="translation_manager.js"></script>
+    <style>
+        /* PWA Install Button (optional styling) */
+        #pwa-install-btn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .lang-selector-header {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .lang-dropdown {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .lang-dropdown:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .lang-dropdown option {
+            background-color: #1a1a2e;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <img src="immagini/splash.png" alt="Wordle Multiplayer Logo" class="splash-logo">
+            <div class="loading-bar-container">
+                <div class="loading-bar"></div>
+            </div>
+            <p data-i18n="loading">Loading...</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app-container">
+
+        <!-- LOBBY -->
+        <div id="lobby-container">
+            <div class="lobby-header">
+                <h1 data-i18n="lobby_title">Wordle Multiplayer</h1>
+                <p class="subtitle" data-i18n="lobby_subtitle">Challenge your friends or play solo!</p>
+
+                <div class="lang-selector-header">
+                    <select id="languageSelect" class="lang-dropdown">
+                        <option value="it">🇮🇹 Italiano</option>
+                        <option value="en">🇬🇧 English</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="lobby-content">
+                <!-- Solo Section -->
+                <div class="game-mode-section solo-section">
+                    <h3 data-i18n="mode_solo_title">🎮 Solo Adventure</h3>
+                    <p class="mode-description" data-i18n="mode_solo_desc">Gioca da solo contro il computer</p>
+                    <button id="solo-mode-btn" class="primary-btn pulse-anim" data-i18n="btn_play_solo">
+                        <span class="btn-icon">👤</span> Play Solo
+                    </button>
+                </div>
+
+                <!-- Duello a Parole Section -->
+                <div class="game-mode-section duello-section">
+                    <h3 data-i18n="mode_duello_title">⚔️ Duello a Parole</h3>
+                    <p class="mode-description" data-i18n="mode_duello_desc">Sfida un amico con parole segrete!</p>
+
+                    <div class="duello-actions">
+                        <button id="create-duello-btn" class="secondary-btn" data-i18n="btn_create_duel">
+                            <span class="btn-icon">➕</span> Crea Duello
+                        </button>
+
+                        <div class="join-duello-container">
+                            <label for="duello-code-input" data-i18n="label_duel_code">Codice Duello</label>
+                            <div class="room-code-wrapper">
+                                <input type="text" id="duello-code-input" placeholder="XXXX" maxlength="4">
+                                <button id="join-duello-btn" class="secondary-btn join-btn"
+                                    data-i18n="btn_join">Unisciti</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Maratona Section (NEW) -->
+                <div class="game-mode-section maratona-section">
+                    <h3 data-i18n="mode_marathon_title">🏃 Modalità Maratona</h3>
+                    <p class="mode-description" data-i18n="mode_marathon_desc">Gara di velocità! Indovina la parola
+                        comune prima dell'avversario.</p>
+
+                    <div class="duello-actions">
+                        <button id="create-maratona-btn" class="secondary-btn"
+                            onclick="window.location.href='maratona.html?mode=create'" data-i18n="btn_create_game">
+                            <span class="btn-icon">⚡</span> Crea Partita
+                        </button>
+
+                        <div class="join-duello-container">
+                            <label for="maratona-code-input" data-i18n="label_marathon_code">Codice Maratona</label>
+                            <div class="room-code-wrapper">
+                                <input type="text" id="maratona-code-input" placeholder="XXXX" maxlength="4">
+                                <button id="join-maratona-btn" class="secondary-btn join-btn"
+                                    data-i18n="btn_join">Unisciti</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- All Versus All Section (NEW) -->
+                <div class="game-mode-section all-vs-all-section">
+                    <h3 data-i18n="mode_ava_title">👥 All Versus All</h3>
+                    <p class="mode-description" data-i18n="mode_ava_desc">Tutti contro tutti! Indovina la parola comune.
+                    </p>
+
+                    <div class="duello-actions">
+                        <button id="create-all-vs-all-btn" class="secondary-btn"
+                            onclick="window.location.href='all_vs_all.html?mode=create'" data-i18n="btn_create_room">
+                            <span class="btn-icon">➕</span> Crea Stanza
+                        </button>
+
+                        <div class="join-duello-container">
+                            <label for="all-vs-all-code-input" data-i18n="label_room_code">Codice Stanza</label>
+                            <div class="room-code-wrapper">
+                                <input type="text" id="all-vs-all-code-input" placeholder="XXXX" maxlength="4">
+                                <button id="join-all-vs-all-btn" class="secondary-btn join-btn"
+                                    data-i18n="btn_join">Unisciti</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parole XL Section (NEW MODE) -->
+                <div class="game-mode-section parole-xl-section">
+                    <h3>📏 Parole XL</h3>
+                    <p class="mode-description">Gioca con parole da 5, 6, 7 o 8 lettere! (Richiede server dedicato)</p>
+
+                    <div class="duello-actions">
+                        <button class="secondary-btn" onclick="window.location.href='modes/parole_xl/index.html'">
+                            <span class="btn-icon">🚀</span> Vai a Parole XL
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Impiccato Section -->
+                <div class="game-mode-section impiccato-section">
+                    <h3>🎯 Impiccato</h3>
+                    <p class="mode-description">Indovina la parola lettera per lettera! Modalità multiplayer a turni.
+                    </p>
+
+                    <div class="duello-actions">
+                        <button class="secondary-btn" onclick="window.location.href='modes/impiccato/index.html'">
+                            <span class="btn-icon">➕</span> Vai a Impiccato
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Multiplayer Section -->
+                <div class="game-mode-section multiplayer-section">
+                    <h3 data-i18n="mode_multi_title">🌐 Multiplayer Arena</h3>
+                    <p class="mode-description" data-i18n="mode_multi_desc">Sfida i tuoi amici online</p>
+
+                    <div class="multiplayer-actions">
+                        <button id="create-room-btn" class="secondary-btn" data-i18n="btn_create_room_en">Create
+                            Room</button>
+
+                        <div class="join-room-container">
+                            <label for="room-code-input" data-i18n="label_room_code_en">Room Code</label>
+                            <div class="room-code-wrapper">
+                                <input type="text" id="room-code-input" placeholder="XXXX" maxlength="4">
+                                <button id="join-room-btn" class="secondary-btn join-btn"
+                                    data-i18n="btn_join_en">Join</button>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="lobby-message"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- GAME CONTAINER -->
+        <div id="game-container" style="display: none;">
+            <div id="game-header">
+                <button id="back-to-lobby-btn" class="home-btn" data-i18n="btn_home">
+                    <span class="btn-icon">🏠</span> HOME
+                </button>
+                <div id="game-status">
+                    <h3 id="player-turn">Waiting for opponent...</h3>
+                    <p id="game-message"></p>
+                </div>
+                <div id="turn-timer">Time: 45s</div>
+            </div>
+
+            <div id="grid-wrapper">
+                <div id="grid-container"></div>
+            </div>
+
+            <div id="keyboard-container"></div>
+        </div>
+
+    </div>
+
+    <!-- Custom Modal Overlay -->
+    <div id="game-modal-overlay" class="game-modal-overlay">
+        <div class="game-modal">
+            <h3 id="modal-title" data-i18n="modal_confirm_title">Confirmation</h3>
+            <p id="modal-message" data-i18n="modal_confirm_msg">Are you sure?</p>
+            <div class="modal-buttons">
+                <button id="modal-confirm" class="modal-btn modal-btn-primary" data-i18n="btn_confirm">Confirm</button>
+                <button id="modal-cancel" class="modal-btn modal-btn-secondary" data-i18n="btn_cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+    <script src="solo.js"></script>
+    <script>
+        // Quick inline script for Maratona Join (to avoid modifying main script.js heavily if not needed)
+        const joinMaratonaBtn = document.getElementById('join-maratona-btn');
+        const maratonaCodeInput = document.getElementById('maratona-code-input');
+
+        if (joinMaratonaBtn) {
+            joinMaratonaBtn.addEventListener('click', () => {
+                const code = maratonaCodeInput.value.trim().toUpperCase();
+                if (code.length === 4) {
+                    window.location.href = `maratona.html?mode=join&room=${code}`;
+                } else {
+                    alert(TranslationManager.t('msg_enter_valid_code'));
+                }
+            });
+        }
+
+        // Enhanced Service Worker Registration with Auto-Update
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('✅ ServiceWorker registered:', registration.scope);
+
+                        // Check for updates every 60 seconds
+                        setInterval(() => {
+                            registration.update();
+                        }, 60000);
+
+                        // Listen for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            console.log('🔄 New version detected, updating...');
+
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    // New version is ready - automatically reload after a short delay
+                                    console.log('✨ New version installed! Reloading in 2 seconds...');
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 2000);
+                                }
+                            });
+                        });
+                    })
+                    .catch((err) => {
+                        console.log('❌ ServiceWorker registration failed:', err);
+                    });
+
+                // Also handle controller change (when SW takes control)
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    console.log('🔄 ServiceWorker controller changed, reloading...');
+                    window.location.reload();
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
